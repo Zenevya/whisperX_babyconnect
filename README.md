@@ -1,38 +1,72 @@
-# WhisperX Experiments
+## Optimized WhisperX Pipeline
+A modular speech-to-text pipeline built on Whisper/WhisperX, designed for robust transcription, preprocessing experimentation, and WER evaluation.
 
-This repo contains a reproducible runner for WhisperX transcription experiments, evaluation, and visualization utilities.
+This project focuses on improving transcription quality for real-world audio (e.g., home recordings, child speech) through preprocessing techniques such as:
+- noise reduction
+- chunk-based transcription
+- voice activity detection (VAD)
 
-Structure
-- `src/` — runner and helpers
-- `data/` — place raw audio and transcripts here
-- `experiments/` — outputs (CSV, PNG)
+## Project Structure
+Optimized-Whisper_X-Pipeline/
+│
+├── 1_incoming_files/        # Raw input files (audio + ground truth)
+├── 2_processing_audio/      # Temporary processing folder
+├── 3_completed_runs/        # Final outputs organized per audio file
+│
+├── preprocessing/           # Modular preprocessing logic
+│   ├── vad.py               # Voice Activity Detection (energy-based)
+│   ├── chunking.py          # Chunk splitting and merging
+│   └── noise_reduction.py   # Audio cleaning & normalization
+│
+├── scripts/
+│   ├── run_pipeline.py      # Main pipeline (entry point)
+│   └── transcribe_optimized.py  # Transcription engine
+│
+└── requirements.txt
 
-See `scripts/prepare_data.sh` for a helper to unpack datasets.
-This workspace contains helper scripts to run and evaluate WhisperX-based transcriptions.
+## How It Works
+Pipeline Overview
+1_incoming_files/
+    ↓
+run_pipeline.py
+    ↓
+2_processing_audio/
+    ↓
+transcribe_optimized.py
+    ↓
+3_completed_runs/<audio_id>/
 
-Files:
-- `run_transcribe.py` - run a single transcription with options (model size, VAD, beam size, enhancement)
-- `evaluate_transcripts.py` - compare generated CSV to a human CSV (00017.csv) and compute WER
-- `visualize_comparison.py` - plot per-segment WER from the compare CSV
-- `requirements.txt` - minimal dependencies
+Each audio file is processed independently and produces:
 
-Quick start:
-1) Activate your venv and install requirements:
-   source /Users/malhaarkashyap/WhisperX/venv/bin/activate
-   pip install -r /Users/malhaarkashyap/WhisperX/requirements.txt
+3_completed_runs/<audio_id>/
+├── audio/          # Original audio
+├── reference/      # Ground truth transcript
+├── transcript/     # Generated transcript (CSV)
+└── metrics/        # WER evaluation
 
-2) Run baseline (small model, no VAD):
-   python /Users/malhaarkashyap/WhisperX/run_transcribe.py --audio /path/to/lena.wav --output /tmp/baseline.csv --model small
+## Features
+# Chunk-Based Transcription
+Audio is split into ~30 second segments
+Prevents long-context hallucinations
+Enables future batching and parallelism
 
-3) Run a tuned config (enable enhance, increase beam size):
-   python /Users/malhaarkashyap/WhisperX/run_transcribe.py --audio /path/to/lena.wav --output /tmp/tuned.csv --model small --enhance --beam-size 8
+# Preprocessing (Modular)
+Noise reduction
+Volume normalization
+Dynamic range compression
 
-4) Evaluate against human transcript `00017.csv`:
-   python /Users/malhaarkashyap/WhisperX/evaluate_transcripts.py --ref /path/to/00017.csv --hyp /tmp/tuned.csv --out /tmp/compare.csv
+# Voice Activity Detection (VAD)
+Lightweight energy-based VAD
+Removes silence and improves chunking
+Falls back gracefully if no speech detected
 
-5) Visualize:
-   python /Users/malhaarkashyap/WhisperX/visualize_comparison.py --compare_csv /tmp/compare.csv --out /tmp/compare.png
+# WER Evaluation
+Automatically compares transcript with ground truth
+Outputs results in:
+3_completed_runs/<audio_id>/metrics/wer.txt
 
-Notes:
-- For quick iterations set `--model small` or `--model base`. `large-v2` downloads are multi-GB and slow on CPU.
-- If you want VAD using pyannote, set `--use-vad` but be aware it may need extra auth and dependencies.
+## Configuration Options
+Inside run_pipeline.py, you can adjust:
+"--use-vad"      # Enable VAD segmentation
+"--enhance"      # Enable noise reduction + normalization
+"--model"        # Whisper model (small, medium, large)
