@@ -45,22 +45,22 @@ Each audio file is processed independently and produces:
 └── metrics/        # WER evaluation
 
 ## Features
-# Chunk-Based Transcription
+### Chunk-Based Transcription
 Audio is split into ~30 second segments
 Prevents long-context hallucinations
 Enables future batching and parallelism
 
-# Preprocessing (Modular)
+### Preprocessing (Modular)
 Noise reduction
 Volume normalization
 Dynamic range compression
 
-# Voice Activity Detection (VAD)
+### Voice Activity Detection (VAD)
 Lightweight energy-based VAD
 Removes silence and improves chunking
 Falls back gracefully if no speech detected
 
-# WER Evaluation
+### WER Evaluation
 Automatically compares transcript with ground truth
 Outputs results in:
 3_completed_runs/<audio_id>/metrics/wer.txt
