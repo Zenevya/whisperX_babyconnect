@@ -8,15 +8,6 @@ __pycache__/
 .venv/
 venv/
 
-# Large / unnecessary
-*.wav
-*.mp3
-*.flac
-
 # OS
 .DS_Store
 Thumbs.db
-
-# Outputs
-2_processing_audio/
-3_completed_runs/
