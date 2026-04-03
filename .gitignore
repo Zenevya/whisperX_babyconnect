@@ -12,8 +12,10 @@ venv/
 test_files/
 
 # Data / pipeline outputs (IMPORTANT)
-1_incoming_files/
-2_processing_audio/
+1_incoming_files/*
+!1_incoming_files/.gitkeep
+2_processing_audio/*
+!2_processing_audio/.gitkeep
 3_completed_runs/
 
 # Audio files
