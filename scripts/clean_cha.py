@@ -1,3 +1,4 @@
+import difflib
 import re
 import sys
 from pathlib import Path
@@ -55,12 +56,31 @@ def convert_cha_to_txt(input_path: str, output_path: str) -> None:
     Path(output_path).write_text(cleaned_text, encoding="utf-8")
 
 
+def resolve_input_path(input_cha: str) -> Path:
+    input_path = Path(input_cha)
+    if input_path.exists():
+        return input_path
+
+    repo_root = Path(__file__).resolve().parent.parent
+    repo_relative_path = repo_root / input_path
+    if repo_relative_path.exists():
+        return repo_relative_path
+
+    candidates = [str(path.relative_to(repo_root)) for path in repo_root.rglob("*.cha")]
+    suggestions = difflib.get_close_matches(input_cha, candidates, n=3, cutoff=0.5)
+
+    message = f"Input file not found: {input_cha}"
+    if suggestions:
+        message += "\nDid you mean:\n" + "\n".join(f"  - {match}" for match in suggestions)
+    raise SystemExit(message)
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        raise SystemExit("Usage: python cha_cleaner/clean_cha.py <path_to_file.cha>")
+        raise SystemExit("Usage: python scripts/clean_cha.py <path_to_file.cha>")
 
     input_cha = sys.argv[1]
-    input_path = Path(input_cha)
+    input_path = resolve_input_path(input_cha)
 
     output_txt = input_path.parent / f"clean_{input_path.stem}.txt"
     convert_cha_to_txt(str(input_path), str(output_txt))

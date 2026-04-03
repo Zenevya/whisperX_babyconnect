@@ -15,43 +15,31 @@ ROOT = Path(__file__).resolve().parent.parent
 INCOMING = ROOT / "1_incoming_files"
 PROCESSING = ROOT / "2_processing_audio"
 COMPLETED = ROOT / "3_completed_runs"
-
 TRANSCRIBE_SCRIPT = ROOT / "scripts" / "transcribe_optimized.py"
+WER_SCRIPT = ROOT / "scripts" / "calculate_wer.py"
 
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".flac"}
-
-
-def normalize_text(text: str) -> str:
-    text = text.lower()
-    text = re.sub(r"[^\w\s']", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
-
 
 def ensure_dirs() -> None:
     for folder in [INCOMING, PROCESSING, COMPLETED]:
         folder.mkdir(parents=True, exist_ok=True)
 
+def run_wer(reference_txt: Path, transcript_csv: Path, output_path: Path) -> None:
+    cmd = [
+        sys.executable,
+        str(WER_SCRIPT),
+        "--ref",
+        str(reference_txt),
+        "--hyp",
+        str(transcript_csv),
+        "--out",
+        str(output_path),
+    ]
+    subprocess.run(cmd, check=True)
 
 def find_reference_file(audio_stem: str) -> Path | None:
     candidate = INCOMING / f"clean_{audio_stem}.txt"
     return candidate if candidate.exists() else None
-
-
-def compute_wer_from_files(reference_txt: Path, transcript_csv: Path) -> float:
-    reference_text = reference_txt.read_text(encoding="utf-8", errors="ignore")
-    df = pd.read_csv(transcript_csv)
-
-    if "Transcript" not in df.columns:
-        raise ValueError(f"'Transcript' column not found in {transcript_csv.name}")
-
-    hypothesis_text = " ".join(df["Transcript"].dropna().astype(str).tolist())
-
-    reference_text = normalize_text(reference_text)
-    hypothesis_text = normalize_text(hypothesis_text)
-
-    return wer(reference_text, hypothesis_text)
-
 
 def run_whisperx(audio_path: Path, output_csv: Path) -> None:
     cmd = [
@@ -106,10 +94,14 @@ def process_one_audio(audio_path: Path) -> None:
 
     if final_reference_path and final_reference_path.exists():
         try:
-            score = compute_wer_from_files(final_reference_path, final_transcript_path)
             wer_file = metrics_dir / "wer.txt"
-            wer_file.write_text(f"WER: {score:.4f}\n", encoding="utf-8")
-            print(f"WER for {audio_stem}: {score:.4f}")
+            run_wer(final_reference_path, final_transcript_path, wer_file)
+            # Read and display only the WER line
+            if wer_file.exists():
+                wer_lines = [line.strip() for line in wer_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+                if wer_lines:
+                    print(f"WER for {audio_stem}: {wer_lines[0]}")
+            print(f"WER calculated for {audio_stem}")
         except Exception as e:
             error_file = metrics_dir / "wer_error.txt"
             error_file.write_text(str(e), encoding="utf-8")
@@ -118,7 +110,6 @@ def process_one_audio(audio_path: Path) -> None:
         note_file = metrics_dir / "wer.txt"
         note_file.write_text("No matching ground-truth transcript found.\n", encoding="utf-8")
         print(f"No matching ground-truth transcript found for {audio_stem}")
-
 
 def main() -> None:
     ensure_dirs()

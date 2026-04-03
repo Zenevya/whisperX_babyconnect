@@ -71,7 +71,6 @@ def load_model(model_name: str = DEFAULT_MODEL, device: str | None = None):
                 device=device,
                 compute_type="float32",
                 language="en",
-                vad_filter=False,
                 asr_options={
                     "condition_on_previous_text": False,
                     "temperatures": [0.0],

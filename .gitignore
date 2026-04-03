@@ -8,6 +8,25 @@ __pycache__/
 .venv/
 venv/
 
+# Test / scratch
+test_files/
+
+# Data / pipeline outputs (IMPORTANT)
+1_incoming_files/
+2_processing_audio/
+3_completed_runs/
+
+# Audio files
+*.wav
+*.mp3
+*.flac
+*.m4a
+
+# Generated outputs
+*.csv
+wer.txt
+wer_error.txt
+
 # OS
 .DS_Store
 Thumbs.db
