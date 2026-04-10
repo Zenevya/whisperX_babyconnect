@@ -75,6 +75,8 @@ def load_model(model_name: str = DEFAULT_MODEL, device: str | None = None):
                     "condition_on_previous_text": False,
                     "temperatures": [0.0],
                     "beam_size": 5,
+                    "no_speech_threshold": 0.6,
+                    "compression_ratio_threshold": 2.4,
                 },
             )
             model._is_whisperx = True

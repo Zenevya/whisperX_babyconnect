@@ -8,8 +8,8 @@ def get_vad_segments(
     sample_rate=16000,
     frame_ms=30,
     hop_ms=10,
-    energy_threshold_ratio=0.25,
-    min_speech_ms=250,
+    energy_threshold_ratio=0.5,
+    min_speech_ms=500,
     min_silence_ms=200,
     max_chunk_seconds=30.0,
 ):
